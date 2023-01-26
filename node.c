@@ -1,27 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-
-extern char *yytext;
-extern int yylineno;
-
-typedef struct node
-{
-    char *name;
-    int line;
-    struct node *fchild, *next;
-    union
-    {
-        int intval;
-        float fltval;
-        char *id_type;
-    };
-} nd;
-
-int nodeNum;
-nd *nodeList[5000];
-int nodeIsRoot[5000];
+#include "node.h"
 
 /*
     char* name: 节点的名字
@@ -42,6 +19,7 @@ nd *newNode(char *name, int num, ...)
     strcpy(root->name, name);
     va_list list;
     va_start(list, num);
+    nodeList[nodeNum++] = root;
 
     if (num > 0) // 该节点还有子节点
     {
@@ -49,6 +27,7 @@ nd *newNode(char *name, int num, ...)
         root->fchild = temp;
         root->line = temp->line;
         root->next = NULL;
+        setChildTag(temp);
 
         if (num >= 2) // 有多个子节点
         {
@@ -56,10 +35,11 @@ nd *newNode(char *name, int num, ...)
             {
                 temp->next = va_arg(list, nd *);
                 temp = temp->next;
+                setChildTag(temp);
             }
         }
     }
-    else // 当前节点是终结符或产生空epsilon
+    else // 当前节点是终结符或产生空epsilon line设置为行号或-1
     {
         root->line = va_arg(list, int);
         if (!strcmp(root->name, "ID") || !strcmp(root->name, "TYPE"))
@@ -76,6 +56,7 @@ nd *newNode(char *name, int num, ...)
         }
         root->fchild = root->next = NULL;
     }
+    printf("%s created\n", root->name);
     return root;
 }
 
@@ -112,4 +93,15 @@ void preorder(nd *root, int level)
 
     preorder(root->fchild, level + 1);
     preorder(root->next, level + 1);
+}
+
+void setChildTag(nd *temp)
+{
+    for (int i = 0; i < nodeNum; i++)
+    {
+        if (nodeList[i] == temp)
+        {
+            nodeIsChild[i] = 1;
+        }
+    }
 }

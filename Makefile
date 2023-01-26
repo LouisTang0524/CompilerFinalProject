@@ -1,5 +1,5 @@
-main: lex.yy.c parse.tab.c main.c
-	gcc lex.yy.c parse.tab.c main.c -o main
+main: lex.yy.c parse.tab.c node.c
+	gcc lex.yy.c parse.tab.c node.c -g -o main
 
 lex.yy.c: lex.l parse.tab.c
 	flex lex.l

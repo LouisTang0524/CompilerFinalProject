@@ -2,20 +2,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "node.h"
 int yylex();
 void yyerror(char* s);
 %}
 
-%token INT FLOAT ID TYPE SEMI COMMA
-%token ASSIGNOP RELOP PLUS MINUS STAR DIV
-%token AND OR DOT NOT
-%token LP RP LB RB LC RC
-%token STRUCT RETURN IF ELSE WHILE
+%union {
+    struct node* tnode;
+}
 
-%type Program ExtDefList ExtDef Specifier ExtDecList FunDec CompSt VarDec
-%type StructSpecifier OptTag DefList Tag VarList ParamDec StmtList Stmt Exp
-%type Def DecList Dec Args
+%token<tnode> INT FLOAT ID TYPE SEMI COMMA
+%token<tnode> ASSIGNOP RELOP PLUS MINUS STAR DIV
+%token<tnode> AND OR DOT NOT
+%token<tnode> LP RP LB RB LC RC
+%token<tnode> STRUCT RETURN IF ELSE WHILE
+
+%type<tnode> Program ExtDefList ExtDef Specifier ExtDecList FunDec CompSt VarDec
+%type<tnode> StructSpecifier OptTag DefList Tag VarList ParamDec StmtList Stmt Exp
+%type<tnode> Def DecList Dec Args
 
 %right ASSIGNOP
 %left OR
@@ -32,93 +36,93 @@ void yyerror(char* s);
 %% /* rules */
 
 /* high-level definitions */
-Program: ExtDefList { printf("Program: ExtDefList\n"); }
+Program: ExtDefList { $$ = newNode("Program", 1, $1); printf("program");}
     ;
-ExtDefList: ExtDef ExtDefList { printf("ExtDefList: ExtDef ExtDefList\n"); }
-    | {}
+ExtDefList: ExtDef ExtDefList   { $$ = newNode("ExtDefList", 2, $1, $2); }
+    |                           { $$ = newNode("ExtDefList", 0, -1); }
     ;
-ExtDef: Specifier ExtDecList SEMI { printf("ExtDef: Specifier ExtDecList SEMI\n"); } /* global variable definition */
-    | Specifier SEMI { printf("ExtDef: Specifier SEMI\n"); } /* struct definition */
-    | Specifier FunDec CompSt { printf("ExtDef: Specifier FunDec CompSt\n"); } /* function definition */
+ExtDef: Specifier ExtDecList SEMI   { $$ = newNode("ExtDef", 3, $1, $2, $3); } /* global variable definition */
+    | Specifier SEMI                { $$ = newNode("ExtDef", 2, $1, $2); } /* struct definition */
+    | Specifier FunDec CompSt       { $$ = newNode("ExtDef", 3, $1, $2, $3); } /* function definition */
     ;
-ExtDecList: VarDec { printf("ExtDecList: VarDec\n"); }
-    | VarDec COMMA ExtDecList { printf("ExtDecList: VarDec COMMA ExtDecList\n"); }
+ExtDecList: VarDec              { $$ = newNode("ExtDefList", 1, $1); }
+    | VarDec COMMA ExtDecList   { $$ = newNode("ExtDecList", 3, $1, $2, $3); }
     ;
 /* specifiers */
-Specifier: TYPE { printf("Specifier: TYPE\n"); }
-    | StructSpecifier { printf("Specifier: StructSpecifier\n"); } /* struct type */
+Specifier: TYPE         { $$ = newNode("Specifier", 1, $1); }
+    | StructSpecifier   { $$ = newNode("Specifier", 1, $1); } /* struct type */
     ;
-StructSpecifier: STRUCT OptTag LC DefList RC { printf("StructSpecifier: STRUCT OptTag LC DefList RC\n"); }
-    | STRUCT Tag { printf("StructSpecifier: STRUCT Tag\n"); }
+StructSpecifier: STRUCT OptTag LC DefList RC    { $$ = newNode("StructSpecifier", 5, $1, $2, $3, $4, $5); }
+    | STRUCT Tag                                { $$ = newNode("StructSpecifier", 2, $1, $2); }
     ;
-OptTag: ID {printf("OptTag: ID\n"); }
-    | {}
+OptTag: ID  { $$ = newNode("OptTag", 1, $1); }
+    |       { $$ = newNode("OptTag", 0, -1); }
     ;
-Tag: ID { printf("Tag: ID\n"); }
+Tag: ID { $$ = newNode("Tag", 1, $1); }
     ;
 
 /* declarators */
-VarDec: ID { printf("VarDec: ID\n"); }
-    | VarDec LB INT RB { printf("VarDec: VarDec LB INT RB\n"); }
+VarDec: ID              { $$ = newNode("VarDec", 1, $1); }
+    | VarDec LB INT RB  { $$ = newNode("VarDec", 4, $1, $2, $3, $4); }
     ;
-FunDec: ID LP VarList RP { printf("FunDec: ID LP VarList RP\n"); }
-    | ID LP RP { printf("FunDec: ID LP RP\n"); }
+FunDec: ID LP VarList RP    { $$ = newNode("FunDec", 4, $1, $2, $3, $4); }
+    | ID LP RP              { $$ = newNode("FunDec", 3, $1, $2, $3); }
     ;
-VarList: ParamDec COMMA VarList { printf("VarList: ParamDec COMMA VarList\n"); }
-    | ParamDec { printf("VarList: ParamDec\n"); }
+VarList: ParamDec COMMA VarList { $$ = newNode("VarList", 3, $1, $2, $3); }
+    | ParamDec                  { $$ = newNode("VarList", 1, $1); }
     ;
-ParamDec: Specifier VarDec { printf("ParamDec: Specifier VarDec\n"); }
+ParamDec: Specifier VarDec { $$ = newNode("ParamDec", 2, $1, $2); }
     ;
 
 /* statements */
-CompSt: LC DefList StmtList RC { printf("CompSt: LC DefList StmtList RC\n"); } /* statement block, definitions must be at the beginning */
+CompSt: LC DefList StmtList RC { $$ = newNode("CompSt", 4, $1, $2, $3, $4); } /* statement block, definitions must be at the beginning */
     ;
-StmtList: Stmt StmtList { printf("StmtList: Stmt StmtList\n"); }
-    | {}
+StmtList: Stmt StmtList { $$ = newNode("StmtList", 2, $1, $2); }
+    |                   { $$ = newNode("StmtList", 0, -1); }
     ;
-Stmt: Exp SEMI { printf("Stmt: Exp SEMI\n"); }
-    | CompSt { printf("Stmt: CompSt\n"); }
-    | RETURN Exp SEMI { printf("Stmt: RETURN Exp SEMI\n"); }
-    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE { printf("Stmt: IF LP Exp RP Stmt\n"); }
-    | IF LP Exp RP Stmt ELSE Stmt { printf("Stmt: IF LP Exp RP Stmt ELSE Stmt\n"); }
-    | WHILE LP Exp RP Stmt { printf("Stmt: WHILE LP Exp RP Stmt\n"); }
+Stmt: Exp SEMI                                  { $$ = newNode("Stmt", 2, $1, $2); }
+    | CompSt                                    { $$ = newNode("Stmt", 1, $1); }
+    | RETURN Exp SEMI                           { $$ = newNode("Stmt", 3, $1, $2, $3); }
+    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE   { $$ = newNode("Stmt", 5, $1, $2, $3, $4, $5); }
+    | IF LP Exp RP Stmt ELSE Stmt               { $$ = newNode("Stmt", 7, $1, $2, $3, $4, $5, $6, $7); }
+    | WHILE LP Exp RP Stmt                      { $$ = newNode("Stmt", 5, $1, $2, $3, $4, $5); }
     ;
 
 /* local definitions */
-DefList: Def DefList { printf("DefList: Def DefList\n"); }
-    | {}
+DefList: Def DefList    { $$ = newNode("DefList", 2, $1, $2); }
+    |                   { $$ = newNode("DefList", 0, -1); }
     ;
-Def: Specifier DecList SEMI { printf("Def: Specifier DecList SEMI\n"); }
+Def: Specifier DecList SEMI { $$ = newNode("Def", 3, $1, $2, $3); }
     ;
-DecList: Dec { printf("DecList: Dec\n"); }
-    | Dec COMMA DecList { printf("DecList: Dec COMMA DecList\n"); }
+DecList: Dec            { $$ = newNode("DecList", 1, $1); }
+    | Dec COMMA DecList { $$ = newNode("DecList", 3, $1, $2, $3); }
     ;
-Dec: VarDec { printf("Dec: VarDec\n"); }
-    | VarDec ASSIGNOP Exp { printf("Dec: VarDec ASSIGNOP Exp\n"); }
+Dec: VarDec                 { $$ = newNode("Dec", 1, $1); }
+    | VarDec ASSIGNOP Exp   { $$ = newNode("Dec", 3, $1, $2, $3); }
     ;
 
 /* expressions */
-Exp: Exp ASSIGNOP Exp { printf("Exp: Exp ASSIGNOP Exp\n"); }
-    | Exp AND Exp { printf("Exp: Exp AND Exp\n"); }
-    | Exp OR Exp { printf("Exp: Exp OR Exp\n"); }
-    | Exp RELOP Exp { printf("Exp: Exp RELOP Exp\n"); }
-    | Exp PLUS Exp { printf("Exp: Exp PLUS Exp\n"); }
-    | Exp MINUS Exp { printf("Exp: Exp MINUS Exp\n"); }
-    | Exp STAR Exp { printf("Exp: Exp STAR Exp\n"); }
-    | Exp DIV Exp { printf("Exp: Exp DIV Exp\n"); }
-    | LP Exp RP { printf("Exp: LP Exp RP\n"); }
-    | MINUS Exp { printf("Exp: MINUS Exp\n"); }
-    | NOT Exp { printf("Exp: NOT Exp\n"); }
-    | ID LP Args RP { printf("Exp: ID LP Args RP\n"); }
-    | ID LP RP { printf("Exp: ID LP RP\n"); }
-    | Exp LB Exp RB { printf("Exp: Exp LB Exp RB\n"); }
-    | Exp DOT ID { printf("Exp: DOT ID\n"); }
-    | ID { printf("Exp: ID\n"); }
-    | INT { printf("Exp: INT\n"); }
-    | FLOAT { printf("Exp: FLOAT\n"); }
+Exp: Exp ASSIGNOP Exp   { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp AND Exp       { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp OR Exp        { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp RELOP Exp     { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp PLUS Exp      { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp MINUS Exp     { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp STAR Exp      { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp DIV Exp       { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | LP Exp RP         { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | MINUS Exp         { $$ = newNode("Exp", 2, $1, $2); }
+    | NOT Exp           { $$ = newNode("Exp", 2, $1, $2); }
+    | ID LP Args RP     { $$ = newNode("Exp", 4, $1, $2, $3, $4); }
+    | ID LP RP          { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | Exp LB Exp RB     { $$ = newNode("Exp", 4, $1, $2, $3, $4); }
+    | Exp DOT ID        { $$ = newNode("Exp", 3, $1, $2, $3); }
+    | ID                { $$ = newNode("Exp", 1, $1); }
+    | INT               { $$ = newNode("Exp", 1, $1); }
+    | FLOAT             { $$ = newNode("Exp", 1, $1); }
     ;
-Args: Exp COMMA Args { printf("Args: Exp COMMA Args\n"); }
-    | Exp { printf("Args: Exp\n"); }
+Args: Exp COMMA Args    { $$ = newNode("Args", 3, $1, $2, $3); }
+    | Exp               { $$ = newNode("Args", 1, $1); }
     ;
 
 %%
@@ -130,6 +134,7 @@ void yyerror(char* s)
 
 int main(int argc, char** argv)
 {
+    printf("start\n");
     yyparse();
     return 0;
 }

@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "parse.tab.h"
+#include "node.h"
 %}
 
 
@@ -46,37 +47,37 @@ RELOP   >|<|<=|>=|==|!=
 
 %%
 
-{TYPE} { return TYPE; }
-{STRUCT} { return STRUCT; }
-{RETURN} { return RETURN; }
-{IF} { return IF; }
-{ELSE} { return ELSE; }
-{WHILE} { return WHILE; }
+{TYPE}      { yylval.tnode = newNode("TYPE", 0, yylineno); return TYPE; }
+{STRUCT}    { yylval.tnode = newNode("STRUCT", 0, yylineno); return STRUCT; }
+{RETURN}    { yylval.tnode = newNode("RETURN", 0, yylineno); return RETURN; }
+{IF}        { yylval.tnode = newNode("IF", 0, yylineno); return IF; }
+{ELSE}      { yylval.tnode = newNode("ELSE", 0, yylineno); return ELSE; }
+{WHILE}     { yylval.tnode = newNode("WHILE", 0, yylineno); return WHILE; }
 
 {INT_HEX_ERROR} { printf("Error type A at Line %d: hex int error.", yylineno); }
 {INT_OCT_ERROR} { printf("Error type A at Line %d: oct int error.", yylineno); }
-{INT} { return INT; }
-{FLOAT} { return FLOAT; }
+{INT}   { yylval.tnode = newNode("INT", 0, yylineno); return INT; }
+{FLOAT} { yylval.tnode = newNode("FLOAT", 0, yylineno); return FLOAT; }
 
-{SEMI} { return SEMI; }
-{COMMA} { return COMMA; }
-{ASSIGNOP} { return ASSIGNOP; }
-{PLUS} { return PLUS; }
-{MINUS} { return MINUS; }
-{STAR} { return STAR; }
-{DIV} { return DIV; }
-{AND} { return AND; }
-{OR} { return OR; }
-{DOT} { return DOT; }
-{NOT} { return NOT; }
-{LP} { return LP; }
-{RP} { return RP; }
-{LB} { return LB; }
-{RB} { return RB; }
-{LC} { return LC; }
-{RC} { return RC; }
-{RELOP} { return RELOP; }
-{ID} { return ID; }
+{SEMI}      { yylval.tnode = newNode("SEMI", 0, yylineno); return SEMI; }
+{COMMA}     { yylval.tnode = newNode("COMMA", 0, yylineno); return COMMA; }
+{ASSIGNOP}  { yylval.tnode = newNode("ASSIGNOP", 0, yylineno); return ASSIGNOP; }
+{PLUS}      { yylval.tnode = newNode("PLUS", 0, yylineno); return PLUS; }
+{MINUS}     { yylval.tnode = newNode("MINUS", 0, yylineno); return MINUS; }
+{STAR}      { yylval.tnode = newNode("STAR", 0, yylineno); return STAR; }
+{DIV}       { yylval.tnode = newNode("DIV", 0, yylineno); return DIV; }
+{AND}       { yylval.tnode = newNode("AND", 0, yylineno); return AND; }
+{OR}        { yylval.tnode = newNode("OR", 0, yylineno); return OR; }
+{DOT}       { yylval.tnode = newNode("DOT", 0, yylineno); return DOT; }
+{NOT}       { yylval.tnode = newNode("NOT", 0, yylineno); return NOT; }
+{LP}        { yylval.tnode = newNode("LP", 0, yylineno); return LP; }
+{RP}        { yylval.tnode = newNode("RP", 0, yylineno); return RP; }
+{LB}        { yylval.tnode = newNode("LB", 0, yylineno); return LB; }
+{RB}        { yylval.tnode = newNode("RB", 0, yylineno); return RB; }
+{LC}        { yylval.tnode = newNode("LC", 0, yylineno); return LC; }
+{RC}        { yylval.tnode = newNode("RC", 0, yylineno); return RC; }
+{RELOP}     { yylval.tnode = newNode("RELOP", 0, yylineno); return RELOP; }
+{ID}        { yylval.tnode = newNode("ID", 0, yylineno); return ID; }
 
 [ \f\v\s\t\r\n] {}
 
