@@ -26,10 +26,12 @@ int nodeNum;
 nd *nodeList[5000];
 int nodeIsChild[5000];
 
-int hasfault;
+int hasFault;
 
 nd *newNode(char *name, int num, ...);
 void preorder(nd *root, int level);
 void setChildTag(nd *temp);
+
+int toInt(char *text);
 
 #endif // __NODE_H

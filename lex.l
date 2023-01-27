@@ -8,10 +8,11 @@
 #include "node.h"
 %}
 
+%x comment
 
 INT_DEC 0|[1-9][0-9]*
 INT_HEX 0[xX][a-fA-F0-9]+
-INT_OCT 0[1-7][0-7]*
+INT_OCT 0[0-7]+
 INT {INT_DEC}|{INT_HEX}|{INT_OCT}
 FLOAT ({INT}"."[0-9]+)|([0-9]*"."[0-9]*[eE][-+]?[0-9]+)
 INT_HEX_ERROR 0[xX][a-fA-F0-9]*[g-zG-Z]+[a-fA-F0-9]*
@@ -46,6 +47,16 @@ RELOP   >|<|<=|>=|==|!=
 
 
 %%
+
+"//".*\n {}
+"/*" { BEGIN(comment); }
+<comment>"*"+"/" { BEGIN(INITIAL); }
+<comment>\n {}
+<comment>. {}
+"*/" {
+    hasFault = 1;
+    printf("Error type A at Line %d: Invalid comments.\n", yylineno);
+}
 
 {TYPE}      { yylval.tnode = newNode("TYPE", 0, yylineno); return TYPE; }
 {STRUCT}    { yylval.tnode = newNode("STRUCT", 0, yylineno); return STRUCT; }
@@ -82,6 +93,7 @@ RELOP   >|<|<=|>=|==|!=
 [ \f\v\s\t\r\n] {}
 
 . {
+    hasFault = 1;
     printf("Error type A at Line %d: Mystirious character '%s'.\n", yylineno, yytext);
 }
 

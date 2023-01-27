@@ -1,4 +1,5 @@
 #include "node.h"
+#include <ctype.h>
 
 /*
     char* name: 节点的名字
@@ -54,7 +55,7 @@ nd *newNode(char *name, int num, ...)
         }
         else if (!strcmp(root->name, "INT"))
         {
-            root->intval = atoi(yytext);
+            root->intval = toInt(yytext);
         }
         else
         {
@@ -112,4 +113,47 @@ void setChildTag(nd *temp)
             nodeIsChild[i] = 1;
         }
     }
+}
+
+int toInt(char *text)
+{
+    int len = strlen(text);
+    int res = 0;
+    if (len == 1) // 十进制为0
+    {
+        return 0;
+    }
+    else // len >= 2
+    {
+        if (text[0] == '0')
+        {
+            if (text[1] == 'x' || text[1] == 'X') // 十六进制
+            {
+                for (char *p = text + 2; *p != '\0'; p++)
+                {
+                    if (isdigit(*p))
+                    {
+                        res = 16 * res + *p - '0';
+                    }
+                    else
+                    {
+                        char c = toupper(*p);
+                        res = 16 * res + c - 'A' + 10;
+                    }
+                }
+            }
+            else // 八进制
+            {
+                for (char *p = text + 1; *p != '\0'; p++)
+                {
+                    res = 8 * res + *p - '0';
+                }
+            }
+        }
+        else // 十进制非0
+        {
+            res = atoi(text);
+        }
+    }
+    return res;
 }
