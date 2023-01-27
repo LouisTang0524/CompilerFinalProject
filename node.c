@@ -70,31 +70,35 @@ void preorder(nd *root, int level)
 {
     if (root == NULL)
         return;
-    for (int i = 0; i < level; i++)
-        printf("  ");
+
     if (root->line != -1) // 除了产生epsilon的非终结符之外 都需要输出信息
     {
+        for (int i = 0; i < level; i++)
+            printf("  ");
         printf("%s", root->name);
         // 终结符 某些需要输出值
         if (!strcmp(root->name, "ID") || !strcmp(root->name, "TYPE"))
         {
-            printf(": %s", root->id_type);
+            printf(": %s\n", root->id_type);
         }
         else if (!strcmp(root->name, "INT"))
         {
-            printf(": %d", root->intval);
+            printf(": %d\n", root->intval);
         }
         else if (!strcmp(root->name, "FLOAT"))
         {
-            printf(": %f", root->fltval);
+            printf(": %f\n", root->fltval);
         }
         // 非终结符 需要输出行号
         else
         {
-            printf("(%d)", root->line);
+            if (root->fchild == NULL)
+                printf("\n");
+            else
+                printf("(%d)\n", root->line);
         }
     }
-    printf("\n");
+
     preorder(root->fchild, level + 1);
     preorder(root->next, level);
 }
