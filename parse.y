@@ -36,7 +36,7 @@ void yyerror(char* s);
 %% /* rules */
 
 /* high-level definitions */
-Program: ExtDefList { $$ = newNode("Program", 1, $1); printf("program");}
+Program: ExtDefList { $$ = newNode("Program", 1, $1); }
     ;
 ExtDefList: ExtDef ExtDefList   { $$ = newNode("ExtDefList", 2, $1, $2); }
     |                           { $$ = newNode("ExtDefList", 0, -1); }
@@ -135,6 +135,20 @@ void yyerror(char* s)
 int main(int argc, char** argv)
 {
     printf("start\n");
+    nodeNum = 0;
+    memset(nodeList, 0, sizeof(nd*) * 5000);
+    memset(nodeIsChild, 0, sizeof(int) * 5000);
     yyparse();
+    for (int i = 0; i < nodeNum; i++)
+    {
+        if (nodeIsChild[i])
+            continue;
+        else
+        {
+            preorder(nodeList[i], 0);
+            break;
+        }
+    }
+    printf("finish\n");
     return 0;
 }

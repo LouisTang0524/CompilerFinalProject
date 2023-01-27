@@ -9,21 +9,21 @@
 nd *newNode(char *name, int num, ...)
 {
     nd *root = malloc(sizeof(nd));
-    nd *temp = malloc(sizeof(nd));
     if (!root)
     {
         printf("无法生成节点");
         exit(0);
     }
 
-    strcpy(root->name, name);
+    root->name = name;
     va_list list;
     va_start(list, num);
     nodeList[nodeNum++] = root;
 
     if (num > 0) // 该节点还有子节点
     {
-        temp = va_arg(list, nd *);
+        root->intval = 0;
+        nd *temp = va_arg(list, nd *);
         root->fchild = temp;
         root->line = temp->line;
         root->next = NULL;
@@ -42,9 +42,15 @@ nd *newNode(char *name, int num, ...)
     else // 当前节点是终结符或产生空epsilon line设置为行号或-1
     {
         root->line = va_arg(list, int);
+        root->fchild = NULL;
+        root->next = NULL;
         if (!strcmp(root->name, "ID") || !strcmp(root->name, "TYPE"))
         {
-            strcpy(root->id_type, yytext);
+            char *s;
+            s = malloc(sizeof(char) * 40);
+            strcpy(s, yytext);
+            root->id_type = s;
+            // root->id_type = yytext;
         }
         else if (!strcmp(root->name, "INT"))
         {
@@ -56,7 +62,7 @@ nd *newNode(char *name, int num, ...)
         }
         root->fchild = root->next = NULL;
     }
-    printf("%s created\n", root->name);
+    // printf("%s created\n", root->name);
     return root;
 }
 
@@ -64,11 +70,10 @@ void preorder(nd *root, int level)
 {
     if (root == NULL)
         return;
-
+    for (int i = 0; i < level; i++)
+        printf("  ");
     if (root->line != -1) // 除了产生epsilon的非终结符之外 都需要输出信息
     {
-        for (int i = 0; i < level; i++)
-            printf(" ");
         printf("%s", root->name);
         // 终结符 某些需要输出值
         if (!strcmp(root->name, "ID") || !strcmp(root->name, "TYPE"))
@@ -79,20 +84,19 @@ void preorder(nd *root, int level)
         {
             printf(": %d", root->intval);
         }
-        else
+        else if (!strcmp(root->name, "FLOAT"))
         {
             printf(": %f", root->fltval);
         }
         // 非终结符 需要输出行号
-        if (root->fchild == NULL)
+        else
         {
-            printf(" (%d)", root->line);
+            printf("(%d)", root->line);
         }
-        printf("\n");
     }
-
+    printf("\n");
     preorder(root->fchild, level + 1);
-    preorder(root->next, level + 1);
+    preorder(root->next, level);
 }
 
 void setChildTag(nd *temp)
