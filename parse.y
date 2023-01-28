@@ -5,6 +5,7 @@
 #include "node.h"
 int yylex();
 void yyerror(char* s);
+FILE* yyin;
 %}
 
 %union {
@@ -152,11 +153,22 @@ void yyerror(char* s)
 
 int main(int argc, char** argv)
 {
+    if (argc < 2)
+    {
+        return 1;
+    }
     // printf("start\n");
     hasFault = 0;
     nodeNum = 0;
     memset(nodeList, 0, sizeof(nd*) * 5000);
     memset(nodeIsChild, 0, sizeof(int) * 5000);
+    
+    yyin = fopen(argv[1], "r");
+    if (!yyin)
+    {
+        printf("open file %s error\n", argv[1]);
+        return 1;
+    }
     yyparse();
     if (hasFault) ;
     else
