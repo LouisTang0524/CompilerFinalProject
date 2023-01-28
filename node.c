@@ -119,7 +119,7 @@ int toInt(char *text)
 {
     int len = strlen(text);
     int res = 0;
-    if (len == 1) // 十进制为0
+    if (len == 1 && text[0] == '0') // 十进制为0
     {
         return 0;
     }

@@ -152,13 +152,13 @@ void yyerror(char* s)
 
 int main(int argc, char** argv)
 {
-    printf("start\n");
+    // printf("start\n");
     hasFault = 0;
     nodeNum = 0;
     memset(nodeList, 0, sizeof(nd*) * 5000);
     memset(nodeIsChild, 0, sizeof(int) * 5000);
     yyparse();
-    if (hasFault) printf("error encountered\n");
+    if (hasFault) ;
     else
     {
         for (int i = 0; i < nodeNum; i++)
@@ -173,6 +173,6 @@ int main(int argc, char** argv)
         }
     }
     
-    printf("finish\n");
+    // printf("finish\n");
     return 0;
 }
